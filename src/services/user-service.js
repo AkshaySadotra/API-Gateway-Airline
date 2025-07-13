@@ -39,10 +39,32 @@ try {
     throw new AppError('Something went wrong', StatusCodes.INTERNAL_SERVER_ERROR)
 }
 }
-
+async function isAuthenticated(token){
+try {
+    if(!token){
+        throw new AppError('Missing JWT token', StatusCodes.BAD_REQUEST)
+    }
+    const response =  Auth.verifyToken(token); // obj
+    const user  = await userRepo.get(response.id);
+    if(!user){
+        throw new AppError('User not found', StatusCodes.NOT_FOUND)
+    }
+    
+} catch (error) {
+    if(error instanceof AppError) throw error;
+    if(error.name == 'JsonWebTokenError') {
+        throw new AppError('Invalid JWT token', StatusCodes.BAD_REQUEST)
+    }
+    if(error.name == 'TokenExpiredError') {
+        throw new AppError('JWT token expired', StatusCodes.BAD_REQUEST)
+    }
+    throw new AppError('Something went wrong', StatusCodes.INTERNAL_SERVER_ERROR)
+}
+}
 
 
 module.exports ={
     create,
-    signin
+    signin,
+    isAuthenticated
 }
