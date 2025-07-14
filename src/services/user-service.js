@@ -1,11 +1,14 @@
-const {UserRepository}  = require('../repositories')
+const {UserRepository,RoleRepository}  = require('../repositories')
 const{StatusCodes} = require('http-status-codes')
 const userRepo = new UserRepository();
+const roleRepo = new RoleRepository();
 const AppError = require('../utils/error/app-error')
-const{Auth} = require('../utils/common')
+const{Auth, Enums} = require('../utils/common')
 async function create(data){
      try {
         const user = await userRepo.create(data);
+        const role = await roleRepo.getRoleByName(Enums.USER_ROLES.CUSTOMER);
+        user.addRole(role); // sequelize provide us these functions
         return user;
     } catch (error) {
         
