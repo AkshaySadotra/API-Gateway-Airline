@@ -35,9 +35,20 @@ async function checkAuth(req, res, next) {
     }
 }
 
+async function isAdmin(req, res, next) {
+    const response = await UserService.isAdmin(req.user) // while authenticating the user, we set the id of user  in req.user 
+    if(!response){
+         return res
+                   .status(StatusCodes.UNAUTHORIZED)
+                   .json({message:'User not authorised for this action'});  
+    }
+    next();
+}
+
 // calling the next middleware if it is in correct format
 // and who will be the next middleware, airplane controller will be the next middleware
 module.exports = {
     validateAuthRequest,
-    checkAuth
+    checkAuth, 
+    isAdmin
 }

@@ -26,10 +26,12 @@ async function create(data){
 async function signin(data){
 try {
     const user = await userRepo.getUserByEmail(data.email);
+    console.log(user);
     if(!user){
         throw new AppError('No user found for the given email',StatusCodes.NOT_FOUND)
     }
     const passwordMatch = Auth.checkPassword(data.password, user.password); 
+    console.log(passwordMatch)
     if(!passwordMatch){
         throw new AppError('Invalid password', StatusCodes.BAD_REQUEST);
     }
@@ -52,7 +54,8 @@ try {
     if(!user){
         throw new AppError('User not found', StatusCodes.NOT_FOUND)
     }
-    
+    return user.id;
+
 } catch (error) {
     if(error instanceof AppError) throw error;
     if(error.name == 'JsonWebTokenError') {
@@ -65,9 +68,50 @@ try {
 }
 }
 
+async function addRoletoUser(data){
+    try {
+        const user = await userRepo.get(data.id);
+        if(!user){
+        throw new AppError('No user found for the given id',StatusCodes.NOT_FOUND)
+    }
+        const role = await roleRepo.getRoleByName(data.role)
+        if(!role){
+        throw new AppError('No role found for the given name',StatusCodes.NOT_FOUND)
+    }
+    user.addRole(role);
+        return user;
+
+    } catch (error) {
+    if(error instanceof AppError) throw error;
+    console.log(error)
+    throw new AppError('Something went wrong', StatusCodes.INTERNAL_SERVER_ERROR)
+    }
+}
+
+async function isAdmin(id) {
+     try {
+        const user = await userRepo.get(id);
+        if(!user){
+        throw new AppError('No user found for the given id',StatusCodes.NOT_FOUND)
+    }
+        const adminrole = await roleRepo.getRoleByName(Enums.USER_ROLES.ADMIN)
+        if(!adminrole){
+        throw new AppError('No role found for the given name',StatusCodes.NOT_FOUND);  
+    }
+    return user.hasRole(adminrole);
+
+    } catch (error) {
+    if(error instanceof AppError) throw error;
+    console.log(error)
+    throw new AppError('Something went wrong', StatusCodes.INTERNAL_SERVER_ERROR)
+    }
+}
+
 
 module.exports ={
     create,
     signin,
-    isAuthenticated
+    isAuthenticated, 
+    addRoletoUser,
+    isAdmin
 }
